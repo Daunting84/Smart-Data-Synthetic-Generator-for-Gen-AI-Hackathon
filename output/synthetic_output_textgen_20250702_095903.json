@@ -1,0 +1,135 @@
+[
+  {
+    "name":"John Doe",
+    "age":35,
+    "phone_number":"123-456-7890",
+    "household_income":75000,
+    "insurance_plan":"Silver 50"
+  },
+  {
+    "name":"Jane Smith",
+    "age":42,
+    "phone_number":"234-567-8901",
+    "household_income":90000,
+    "insurance_plan":"Gold 70"
+  },
+  {
+    "name":"Mike Johnson",
+    "age":28,
+    "phone_number":"345-678-9012",
+    "household_income":50000,
+    "insurance_plan":"Bronze 60"
+  },
+  {
+    "name":"Emily Davis",
+    "age":30,
+    "phone_number":"456-789-0123",
+    "household_income":72000,
+    "insurance_plan":"Platinum"
+  },
+  {
+    "name":"Robert Brown",
+    "age":45,
+    "phone_number":"567-890-1234",
+    "household_income":100000,
+    "insurance_plan":"Platinum Plus"
+  },
+  {
+    "name":"Sarah Thompson",
+    "age":24,
+    "phone_number":"678-901-2345",
+    "household_income":45000,
+    "insurance_plan":"Bronze 60"
+  },
+  {
+    "name":"David Miller",
+    "age":38,
+    "phone_number":"789-012-3456",
+    "household_income":85000,
+    "insurance_plan":"Silver 50"
+  },
+  {
+    "name":"Lisa Williams",
+    "age":50,
+    "phone_number":"890-123-4567",
+    "household_income":110000,
+    "insurance_plan":"Gold 70"
+  },
+  {
+    "name":"Michael Johnson",
+    "age":29,
+    "phone_number":"901-234-5678",
+    "household_income":48000,
+    "insurance_plan":"Bronze 60"
+  },
+  {
+    "name":"Emma Watson",
+    "age":32,
+    "phone_number":"012-345-6789",
+    "household_income":65000,
+    "insurance_plan":"Silver 50"
+  },
+  {
+    "name":"Rachel Green",
+    "age":40,
+    "phone_number":"123-456-7890",
+    "household_income":95000,
+    "insurance_plan":"Gold 70"
+  },
+  {
+    "name":"Chandler Bing",
+    "age":45,
+    "phone_number":"234-567-8901",
+    "household_income":105000,
+    "insurance_plan":"Platinum"
+  },
+  {
+    "name":"Monica Geller",
+    "age":37,
+    "phone_number":"345-678-9012",
+    "household_income":80000,
+    "insurance_plan":"Silver 50"
+  },
+  {
+    "name":"Phoebe Buffay",
+    "age":43,
+    "phone_number":"456-789-0123",
+    "household_income":60000,
+    "insurance_plan":"Bronze 60"
+  },
+  {
+    "name":"Ross Geller",
+    "age":47,
+    "phone_number":"567-890-1234",
+    "household_income":120000,
+    "insurance_plan":"Platinum Plus"
+  },
+  {
+    "name":"Joey Tribbiani",
+    "age":40,
+    "phone_number":"678-901-2345",
+    "household_income":70000,
+    "insurance_plan":"Gold 70"
+  },
+  {
+    "name":"Rachel Green",
+    "age":35,
+    "phone_number":"789-012-3456",
+    "household_income":98000,
+    "insurance_plan":"Platinum"
+  },
+  {
+    "name":"Monica Geller",
+    "age":42,
+    "phone_number":"890-123-4567",
+    "household_income":115000,
+    "insurance_plan":"Platinum Plus"
+  },
+  {
+    "name":"Chandler Bing",
+    "age":48,
+    "phone_number":"901-234-5678",
+    "household_income":108000,
+    "insurance_plan":"Gold 70"
+  }
+]
