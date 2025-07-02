@@ -38,7 +38,15 @@ Examples:
 Additional instructions:
 {custom_prompt}
 
-Please output only the {format_name} content.
+Considerations:
+Avoid commas inside fields or properly escape them.
+Use consistent formatting, no extra blank lines.
+Use reasonable numeric ranges for the given catagory
+Output dates in YYYY-MM-DD format
+
+Please output only {format_name} content with headers, no explanations or extra text.
+Generate diverse and realistic examples, not repeating the same data.
+If you cannot generate valid {format_name}, respond with an error message only.
 """
     return prompt.strip()
 

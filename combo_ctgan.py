@@ -3,12 +3,17 @@ from joblib import parallel_backend
 import pandas as pd
 import os
 
-def train_and_sample_ctgan(df, output_path, num_rows=1000):
+def generate_from_dataframe(df, output_path, num_rows=1000):
+    """
+    Train a CTGAN model on the given dataframe and generate synthetic data.
+    Saves the synthetic data to output_path.
+    """
     print("🔧 Training CTGAN model on modified data...")
     model = CTGAN(epochs=100)
 
     with parallel_backend("loky", n_jobs=1):
-        model.fit(df, discrete_columns=df.select_dtypes(include=['object', 'category', 'bool']).columns.tolist())
+        discrete_cols = df.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
+        model.fit(df, discrete_columns=discrete_cols)
 
     synthetic_data = model.sample(num_rows)
     save_dataframe(synthetic_data, output_path)

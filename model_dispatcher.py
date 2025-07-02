@@ -17,11 +17,7 @@ joblib.parallel.DEFAULT_N_JOBS = 1
 
 load_dotenv()
 
-def decide_model(mode):
-    # Prompt only ONCE if mode is not "both"
-    if mode in ["data", "prompt"]:
-        user_inputs = collect_user_inputs(mode)
-
+def decide_model(mode, user_inputs,user_intent=None):
     if mode == "data":
         input_path = user_inputs["input_path"]
         output_path = get_output_path(user_inputs["output_ext"], "ctgan")
@@ -49,14 +45,11 @@ def decide_model(mode):
                            user_inputs["custom_prompt"], output_path, user_inputs["num_rows"])
 
     elif mode == "both":
-        user_intent = input("Would you like to... Modify existing data then create synthetic data (ModGen), Create then enrich synthetic data (GenEn), or only modify current data (Mod)? Enter ModGen/GenEn/Mod: ").strip().lower()
-
         if user_intent not in ["modgen", "genen", "mod"]:
             print("❌ Invalid combo-mode selected.")
             return
 
-        # ✅ Only collect input ONCE, now that we know the sub-mode
-        user_inputs = collect_user_inputs("both")
+        # We already have user_inputs from main.py; just use it here
         generate_combo_data(user_intent, user_inputs)
 
     else:

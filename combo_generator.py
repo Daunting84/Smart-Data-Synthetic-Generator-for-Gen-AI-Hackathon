@@ -5,7 +5,7 @@ from combo_textgen import apply_prompt_to_data
 from combo_ctgan import generate_from_dataframe
 from utils import get_output_path
 
-def run_combo_pipeline(mode: str, user_inputs: dict):
+def generate_combo_data(mode: str, user_inputs: dict):
     input_path = user_inputs["input_path"]
     df = load_dataframe(input_path)
     df = df.sample(min(len(df), 3000), random_state=42)
