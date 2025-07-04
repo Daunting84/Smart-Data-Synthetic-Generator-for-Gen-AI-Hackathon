@@ -29,7 +29,7 @@ def generate_combo_data(mode: str, user_inputs: dict):
             print("❌ Failed during CTGAN generation:")
             print(e)
             return
-
+        
         print(f"✅ Combined ModGen synthetic data saved to: {output_path}")
 
     elif mode.lower() == "genen":

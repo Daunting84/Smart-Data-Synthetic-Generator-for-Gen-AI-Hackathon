@@ -3,6 +3,8 @@ from joblib import parallel_backend
 import pandas as pd
 import os
 import json
+from data_validator import validate
+from data_validator import THRESHOLDS
 
 def generate_synthetic_data(input_path, output_path, df, num_rows=1000, discrete_columns=None):
     print("🔧 Training CTGAN model...")
@@ -14,6 +16,34 @@ def generate_synthetic_data(input_path, output_path, df, num_rows=1000, discrete
 
     print("✅ Model training complete. Generating synthetic data...")
     synthetic_data = model.sample(num_rows)
+
+     # Validate synthetic data
+    results = validate(df, synthetic_data)
+
+    print("📊 Validation Results:")
+    for feature, stats in results.items():
+        if feature == "_pairwise_correlation":
+            print("\n🧩 Pairwise Correlation Analysis:")
+            avg_corr_diff = stats['average_correlation_difference']
+            flag = " ⚠️" if avg_corr_diff > THRESHOLDS["average_correlation_difference"] else ""
+            print(f"  🔢 Avg Correlation Difference: {avg_corr_diff:.4f}{flag}")
+
+            print("  🧪 Per-feature differences:")
+            for col1, subdict in stats["per_feature_difference"].items():
+                for col2, val in subdict.items():
+                    print(f"    {col1} vs {col2}: {val:.4f}")
+        else:
+            print(f"\n🔍 {feature}:")
+            for metric, value in stats.items():
+                if isinstance(value, (int, float)):
+                    flag = " ⚠️" if metric in THRESHOLDS and value > THRESHOLDS[metric] else ""
+                    print(f"  {metric}: {value:.4f}{flag}")
+                else:
+                    print(f"  {metric}: {value}")
+
+    print("\n⚠️ = Flagged values may indicate lower similarity or data quality issues.")
+    avg_corr_diff = results["_pairwise_correlation"]["average_correlation_difference"]
+    print(f"\n📈 OVERALL DATASET SIMILARITY SCORE : {1 - avg_corr_diff:.4f}")
 
     save_dataframe(synthetic_data, output_path)
     print(f"✅ Synthetic data saved to: {output_path}")
