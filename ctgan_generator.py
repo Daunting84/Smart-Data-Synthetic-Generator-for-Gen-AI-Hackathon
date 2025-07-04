@@ -5,6 +5,8 @@ import os
 import json
 from data_validator import validate
 from data_validator import THRESHOLDS
+from privacy_postprocessing import interactive_privacy_postprocessing
+
 
 def generate_synthetic_data(input_path, output_path, df, num_rows=1000, discrete_columns=None):
     print("🔧 Training CTGAN model...")
@@ -16,6 +18,12 @@ def generate_synthetic_data(input_path, output_path, df, num_rows=1000, discrete
 
     print("✅ Model training complete. Generating synthetic data...")
     synthetic_data = model.sample(num_rows)
+
+    # prompts for privacy setting
+    synthetic_data, privacy_report = interactive_privacy_postprocessing(synthetic_data)
+    print("🔒 Privacy postprocessing report:")
+    for k, v in privacy_report.items():
+        print(f"  {k}: {v}")
 
      # Validate synthetic data
     results = validate(df, synthetic_data)

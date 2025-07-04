@@ -3,8 +3,11 @@ import json
 from schema_profiler import load_dataframe, profile_schema
 from combo_textgen import apply_prompt_to_data
 from combo_ctgan import generate_from_dataframe
-from utils import get_output_path
-
+from utils import get_output_path, save_dataframe
+from data_validator import validate
+from privacy_postprocessing import interactive_privacy_postprocessing
+from data_validator import THRESHOLDS
+ 
 def generate_combo_data(mode: str, user_inputs: dict):
     input_path = user_inputs["input_path"]
     df = load_dataframe(input_path)
@@ -24,36 +27,104 @@ def generate_combo_data(mode: str, user_inputs: dict):
 
         print("🤖 Generating synthetic data from transformed dataset...")
         try:
-            generate_from_dataframe(transformed_df, output_path, user_inputs["num_rows"])
+            synthetic_data = generate_from_dataframe(transformed_df, output_path, user_inputs["num_rows"])
         except Exception as e:
             print("❌ Failed during CTGAN generation:")
             print(e)
             return
+        # prompts for privacy setting
+        synthetic_data, privacy_report = interactive_privacy_postprocessing(synthetic_data)
         
+        # Validate synthetic data
+        results = validate(df, synthetic_data)
+        avg_corr_diff = results["_pairwise_correlation"]["average_correlation_difference"]
+
+        print("🔒 Privacy postprocessing report:")
+        for k, v in privacy_report.items():
+            print(f"  {k}: {v}")
+
+        print("📊 Validation Results:")
+        for feature, stats in results.items():
+            if feature == "_pairwise_correlation":
+                print("\n🧩 Pairwise Correlation Analysis:")
+                avg_corr_diff = stats['average_correlation_difference']
+                flag = " ⚠️" if avg_corr_diff > THRESHOLDS["average_correlation_difference"] else ""
+                print(f"  🔢 Avg Correlation Difference: {avg_corr_diff:.4f}{flag}")
+
+                print("  🧪 Per-feature differences:")
+                for col1, subdict in stats["per_feature_difference"].items():
+                    for col2, val in subdict.items():
+                        print(f"    {col1} vs {col2}: {val:.4f}")
+            else:
+                print(f"\n🔍 {feature}:")
+                for metric, value in stats.items():
+                    if isinstance(value, (int, float)):
+                        flag = " ⚠️" if metric in THRESHOLDS and value > THRESHOLDS[metric] else ""
+                        print(f"  {metric}: {value:.4f}{flag}")
+                    else:
+                        print(f"  {metric}: {value}")
+
+        print("\n⚠️ = Flagged values may indicate lower similarity or data quality issues.")
+        print(f"\n📈 OVERALL DATASET SIMILARITY SCORE : {1 - avg_corr_diff:.4f}")
+
+        save_dataframe(synthetic_data, output_path)
         print(f"✅ Combined ModGen synthetic data saved to: {output_path}")
 
     elif mode.lower() == "genen":
-        print("🤖 Generating base synthetic data from original dataset...")
+        print("Generating base synthetic data from original dataset...")
         try:
             base_output_path = get_output_path(output_ext, "ctgan_base")
-            generate_from_dataframe(df, base_output_path, user_inputs["num_rows"])
+            synthetic_data=generate_from_dataframe(df, base_output_path, user_inputs["num_rows"])
         except Exception as e:
             print("❌ Failed during CTGAN generation:")
             print(e)
             return
 
         print("✏️ Re-loading and applying AI enrichment using prompt...")
-        base_df = load_dataframe(base_output_path)
+        #base_df = load_dataframe(base_output_path)
         try:
-            enriched_df = apply_prompt_to_data(base_df, user_inputs["custom_prompt"])
+            enriched_df = apply_prompt_to_data(synthetic_data, user_inputs["custom_prompt"])
         except Exception as e:
             print("❌ Failed during enrichment prompt:")
             print(e)
             return
 
-        enriched_output_path = get_output_path(output_ext, "genen_enriched")
-        enriched_df.to_csv(enriched_output_path, index=False)
-        print(f"✅ Combined GenEn enriched data saved to: {enriched_output_path}")
+        enriched_df, privacy_report = interactive_privacy_postprocessing(enriched_df)
+        
+        # Validate synthetic data
+        results = validate(df, enriched_df)
+        avg_corr_diff = results["_pairwise_correlation"]["average_correlation_difference"]
+
+        print("🔒 Privacy postprocessing report:")
+        for k, v in privacy_report.items():
+            print(f"  {k}: {v}")
+
+        print("📊 Validation Results:")
+        for feature, stats in results.items():
+            if feature == "_pairwise_correlation":
+                print("\n🧩 Pairwise Correlation Analysis:")
+                avg_corr_diff = stats['average_correlation_difference']
+                flag = " ⚠️" if avg_corr_diff > THRESHOLDS["average_correlation_difference"] else ""
+                print(f"  🔢 Avg Correlation Difference: {avg_corr_diff:.4f}{flag}")
+
+                print("  🧪 Per-feature differences:")
+                for col1, subdict in stats["per_feature_difference"].items():
+                    for col2, val in subdict.items():
+                        print(f"    {col1} vs {col2}: {val:.4f}")
+            else:
+                print(f"\n🔍 {feature}:")
+                for metric, value in stats.items():
+                    if isinstance(value, (int, float)):
+                        flag = " ⚠️" if metric in THRESHOLDS and value > THRESHOLDS[metric] else ""
+                        print(f"  {metric}: {value:.4f}{flag}")
+                    else:
+                        print(f"  {metric}: {value}")
+
+        print("\n⚠️ = Flagged values may indicate lower similarity or data quality issues.")
+        print(f"\n📈 OVERALL DATASET SIMILARITY SCORE : {1 - avg_corr_diff:.4f}")
+
+        save_dataframe(enriched_df, output_path)
+        print(f"✅ Combined GenEn enriched data saved to: {output_path}")
 
     elif mode.lower() == "mod":
         print("✏️ Applying AI prompt to modify only original data...")
@@ -64,7 +135,15 @@ def generate_combo_data(mode: str, user_inputs: dict):
             print(e)
             return
 
-        mod_df.to_csv(output_path, index=False)
+        mod_df, privacy_report = interactive_privacy_postprocessing(mod_df)
+        
+        
+        print("🔒 Privacy postprocessing report:")
+        for k, v in privacy_report.items():
+            print(f"  {k}: {v}")
+
+    
+        save_dataframe(mod_df, output_path)
         print(f"✅ Modified dataset saved to: {output_path}")
 
     else:

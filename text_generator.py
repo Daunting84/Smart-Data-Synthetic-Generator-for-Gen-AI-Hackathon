@@ -43,6 +43,7 @@ Avoid commas inside fields or properly escape them.
 Use consistent formatting, no extra blank lines.
 Use reasonable numeric ranges for the given catagory
 Output dates in YYYY-MM-DD format
+If the message contains a comma, wrap the entire message in "", so that it can maintain CSV format if needed
 
 Please output only {format_name} content with headers, no explanations or extra text.
 Generate diverse and realistic examples, not repeating the same data.
