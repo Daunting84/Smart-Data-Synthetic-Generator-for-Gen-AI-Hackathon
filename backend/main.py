@@ -33,10 +33,7 @@ app = FastAPI()
 # Allow your React frontend to talk to FastAPI
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://arm-smart-data-synthetic-generator.s3-website.us-east-2.amazonaws.com",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
