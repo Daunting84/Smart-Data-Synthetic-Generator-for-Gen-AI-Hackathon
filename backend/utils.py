@@ -1,6 +1,13 @@
 # utils.py
 import os
 import time
+selected_values = {}
+session_state = {
+    "generation_status": "idle",  # other values: "running", "ctgan_done", "privacy_done", "completed", "error"
+    "output_path": None,
+    "validation_results":None,
+}
+
 
 def get_output_path(filetype: str, model_choice: str) -> str:
     valid_exts = {".csv", ".json", ".xlsx"}
@@ -18,34 +25,35 @@ def get_output_path(filetype: str, model_choice: str) -> str:
     filename = f"synthetic_output_{model_choice}_{timestamp}{filetype}"
     return os.path.join("output", filename)
 
-def collect_user_inputs(mode,user_intent=None):
+def collect_user_inputs(mode,input_path,user_intent=None):
     inputs = {}
     if mode =="data":
-        inputs["input_path"] = input("Enter path to your CSV, JSON, or Excel file: ").strip()
-        inputs["num_rows"] = int(input("How many rows of synthetic data? "))
+        inputs["input_path"] = input_path
+        print("📦 collect_user_inputs received path:", input_path) 
+        inputs["num_rows"] = selected_values.get("num_rows", 100)  # Default to 100 if missing
     elif mode =="prompt":
-        inputs["custom_prompt"] = input("Describe the format or style of text data you'd like: ")
-        inputs["fields"] = [f.strip() for f in input("Enter comma-separated column names: ").split(",") if f.strip()]
-        inputs["use_case"] = input("Pick a use case (e.g., chat messages, login attempts, patient records): ").strip()
-        inputs["num_rows"] = int(input("How many rows of synthetic data? "))
+        inputs["custom_prompt"] = selected_values.get("custom_prompt", "")
+        inputs["fields"] = selected_values.get("fields", [])
+        inputs["use_case"] = selected_values.get("use_case", "general")  # default to 'general' if nothing set
+        inputs["num_rows"] = selected_values.get("num_rows", 100)  # Default to 100 if missing
 
     elif mode =="both":
-        inputs["input_path"] = input("Enter path to your CSV, JSON, or Excel file: ").strip()
+        inputs["input_path"] = input_path
         if user_intent =="modgen":
-            inputs["custom_prompt"] = input("Describe the modifications you would like to make to the data: ")
-            inputs["fields"] = [f.strip() for f in input("Enter comma-separated column names: ").split(",") if f.strip()]
-            inputs["use_case"] = input("Pick a use case (e.g., chat messages, login attempts, patient records): ").strip()
-            inputs["num_rows"] = int(input("How many rows of synthetic data? "))
+            inputs["custom_prompt"] = selected_values.get("custom_prompt", "")
+            inputs["fields"] = selected_values.get("fields", [])
+            inputs["use_case"] = selected_values.get("use_case", "general")  # default to 'general' if nothing set
+            inputs["num_rows"] = selected_values.get("num_rows", 100)  # Default to 100 if missing
         elif user_intent =="genen":
-            inputs["custom_prompt"] = input("Describe how you would like to fine tune your data after generation: ")
-            inputs["fields"] = [f.strip() for f in input("Enter comma-separated column names: ").split(",") if f.strip()]
-            inputs["use_case"] = input("Pick a use case (e.g., chat messages, login attempts, patient records): ").strip()
-            inputs["num_rows"] = int(input("How many rows of synthetic data? "))
+            inputs["custom_prompt"] = selected_values.get("custom_prompt", "")
+            inputs["fields"] = selected_values.get("fields", [])
+            inputs["use_case"] = selected_values.get("use_case", "general")  # default to 'general' if nothing set
+            inputs["num_rows"] = selected_values.get("num_rows", 100)  # Default to 100 if missing
         elif user_intent =="mod":
-            inputs["custom_prompt"] = input("Describe how you would like your data to be modified: ")
-            inputs["fields"] = [f.strip() for f in input("Enter comma-separated column names: ").split(",") if f.strip()]
-            inputs["use_case"] = input("Pick a use case (e.g., chat messages, login attempts, patient records): ").strip()
-    inputs["output_ext"] = input("Choose output file type (csv/json/xlsx): ").strip()
+            inputs["custom_prompt"] = selected_values.get("custom_prompt", "")
+            inputs["fields"] = selected_values.get("fields", [])
+            inputs["use_case"] = selected_values.get("use_case", "general")  # default to 'general' if nothing set
+    inputs["output_ext"] = selected_values.get("output_ext", "csv")
     return inputs
 
 def save_dataframe(df, path):

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from utils import selected_values
 
 def add_gaussian_noise(df, noise_std=0.1, columns=None):
     """Add Gaussian noise to numerical columns."""
@@ -42,57 +43,26 @@ def privacy_report(noise_std, swap_fraction, masked_columns):
     return report
 
 def interactive_privacy_postprocessing(synthetic_data):
-    answer = input("Do you want to adjust the privacy of your data? (yes/no): ").strip().lower()
-    if answer not in ("yes", "y"):
-        print("Skipping privacy postprocessing.")
-        return synthetic_data, {}
+    privacy = selected_values.get("privacy", {})
+    noise_std = float(privacy.get("noise_stddev", 0))
+    swap_fraction = float(privacy.get("category_swap_fraction", 0))
+    mask_columns = privacy.get("masked_columns", [])
 
-    # Get noise standard deviation
-    while True:
-        try:
-            noise_std = float(input("Enter Gaussian noise stddev (e.g., 0.05 for 5% noise, 0 for none): ").strip())
-            if noise_std < 0:
-                print("Noise stddev must be >= 0. Try again.")
-                continue
-            break
-        except ValueError:
-            print("Invalid number. Please enter a decimal like 0.05.")
-
-    # Get swap fraction
-    while True:
-        try:
-            swap_fraction = float(input("Enter category swap fraction (e.g., 0.1 for 10%, 0 for none): ").strip())
-            if not (0 <= swap_fraction <= 1):
-                print("Swap fraction must be between 0 and 1. Try again.")
-                continue
-            break
-        except ValueError:
-            print("Invalid number. Please enter a decimal between 0 and 1.")
-
-    # Get columns to mask (comma separated)
-    mask_input = input("Enter column names to mask (comma separated), or leave blank for none: ").strip()
-    mask_columns = [col.strip() for col in mask_input.split(",") if col.strip()]
-
-    # Apply Gaussian noise if >0
     if noise_std > 0:
         synthetic_data = add_gaussian_noise(synthetic_data, noise_std=noise_std)
         print(f"Applied Gaussian noise with stddev {noise_std}")
 
-    # Apply category swapping if >0
     if swap_fraction > 0:
         synthetic_data = category_swap(synthetic_data, swap_fraction=swap_fraction)
         print(f"Applied category swapping with fraction {swap_fraction}")
 
-    # Apply masking if any columns specified
     if mask_columns:
         synthetic_data = mask_data(synthetic_data, mask_columns=mask_columns)
         print(f"Masked columns: {', '.join(mask_columns)}")
 
-    # Build privacy report dict
     report = {
         "noise_stddev": noise_std,
         "category_swap_fraction": swap_fraction,
         "masked_columns": mask_columns
     }
-
     return synthetic_data, report

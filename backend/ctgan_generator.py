@@ -6,7 +6,7 @@ import json
 from data_validator import validate
 from data_validator import THRESHOLDS
 from privacy_postprocessing import interactive_privacy_postprocessing
-
+from utils import session_state
 
 def generate_synthetic_data(input_path, output_path, df, num_rows=1000, discrete_columns=None):
     print("🔧 Training CTGAN model...")
@@ -52,9 +52,11 @@ def generate_synthetic_data(input_path, output_path, df, num_rows=1000, discrete
     print("\n⚠️ = Flagged values may indicate lower similarity or data quality issues.")
     avg_corr_diff = results["_pairwise_correlation"]["average_correlation_difference"]
     print(f"\n📈 OVERALL DATASET SIMILARITY SCORE : {1 - avg_corr_diff:.4f}")
+    session_state["validation_results"] = results
 
     save_dataframe(synthetic_data, output_path)
     print(f"✅ Synthetic data saved to: {output_path}")
+    session_state["output_path"] = output_path
 
 
 def save_dataframe(df, path):

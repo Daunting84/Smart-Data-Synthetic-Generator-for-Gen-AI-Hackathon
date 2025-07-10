@@ -4,6 +4,7 @@ import pandas as pd
 import json
 from io import StringIO
 from textwrap import dedent
+from utils import session_state
 
 def build_field_aware_prompt(schema: dict, use_case: str, num_rows: int, custom_prompt: str, few_shot_examples: str, format_name) -> str:
     field_descriptions = []
@@ -38,12 +39,14 @@ Examples:
 Additional instructions:
 {custom_prompt}
 
-Considerations:
-Avoid commas inside fields or properly escape them.
+RULES:
 Use consistent formatting, no extra blank lines.
 Use reasonable numeric ranges for the given catagory
 Output dates in YYYY-MM-DD format
-If the message contains a comma, wrap the entire message in "", so that it can maintain CSV format if needed
+Avoid commas inside fields or properly escape them.
+If a field contains commas, wrap it in double quotes. For example:
+name,message
+Steve,"Hello, world"
 
 Please output only {format_name} content with headers, no explanations or extra text.
 Generate diverse and realistic examples, not repeating the same data.
@@ -111,8 +114,10 @@ def generate_text_data(schema, fields, use_case, few_shot_examples, custom_promp
 
         save_dataframe(df, output_path)
         print(f"✅ Synthetic text data saved to: {output_path}")
+        session_state["output_path"] = output_path
 
     except Exception as e:
         print("❌ Failed to parse response into DataFrame.")
         print("Raw response:\n", response_text)
         raise e
+    session_state["generation_status"] = "completed"

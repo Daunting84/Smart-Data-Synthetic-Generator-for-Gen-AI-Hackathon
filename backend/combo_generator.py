@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import os
 from schema_profiler import load_dataframe, profile_schema
 from combo_textgen import apply_prompt_to_data
 from combo_ctgan import generate_from_dataframe
@@ -7,24 +8,40 @@ from utils import get_output_path, save_dataframe
 from data_validator import validate
 from privacy_postprocessing import interactive_privacy_postprocessing
 from data_validator import THRESHOLDS
+from utils import session_state
+import uuid
+from datetime import datetime
  
 def generate_combo_data(mode: str, user_inputs: dict):
-    input_path = user_inputs["input_path"]
+    session_state["generation_status"] = "saving inputs"
+    print("🧠 user_inputs received:", user_inputs)
+
+    try:
+        input_path = user_inputs["input_path"]
+        print("📁 Attempting to load:", input_path)
+    except Exception as e:
+        print("💥 Failed to get input_path from user_inputs:", e)
+        session_state["generation_status"] = f"error: {str(e)}"
+        return
+    
     df = load_dataframe(input_path)
     df = df.sample(min(len(df), 3000), random_state=42)
-
-    output_ext = user_inputs["output_ext"]
-    output_path = get_output_path(output_ext, f"combo_{mode.lower()}")
+    output_ext = user_inputs.get("output_ext", "csv")
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    unique_id = uuid.uuid4().hex[:6]
+    output_filename = f"synthetic_output_{timestamp}_{unique_id}.{output_ext}"
+    output_path = os.path.join("outputs", output_filename)
 
     if mode.lower() == "modgen":
         print("✏️ Applying AI transformations using prompt...")
+        session_state["generation_status"] = "executing prompt"
         try:
             transformed_df = apply_prompt_to_data(df, user_inputs["custom_prompt"])
         except Exception as e:
             print("❌ Failed during prompt transformation:")
             print(e)
             return
-
+        session_state["generation_status"] = "prompt done, running ctgan"
         print("🤖 Generating synthetic data from transformed dataset...")
         try:
             synthetic_data = generate_from_dataframe(transformed_df, output_path, user_inputs["num_rows"])
@@ -38,6 +55,7 @@ def generate_combo_data(mode: str, user_inputs: dict):
         # Validate synthetic data
         results = validate(df, synthetic_data)
         avg_corr_diff = results["_pairwise_correlation"]["average_correlation_difference"]
+        session_state["validation_results"] = results
 
         print("🔒 Privacy postprocessing report:")
         for k, v in privacy_report.items():
@@ -70,6 +88,10 @@ def generate_combo_data(mode: str, user_inputs: dict):
         save_dataframe(synthetic_data, output_path)
         print(f"✅ Combined ModGen synthetic data saved to: {output_path}")
 
+        # Store the path for downloading later
+        session_state["output_path"] = output_path
+        session_state["generation_status"] = "completed"
+
     elif mode.lower() == "genen":
         print("Generating base synthetic data from original dataset...")
         try:
@@ -94,6 +116,7 @@ def generate_combo_data(mode: str, user_inputs: dict):
         # Validate synthetic data
         results = validate(df, enriched_df)
         avg_corr_diff = results["_pairwise_correlation"]["average_correlation_difference"]
+        session_state["validation_results"] = results
 
         print("🔒 Privacy postprocessing report:")
         for k, v in privacy_report.items():
@@ -126,6 +149,11 @@ def generate_combo_data(mode: str, user_inputs: dict):
         save_dataframe(enriched_df, output_path)
         print(f"✅ Combined GenEn enriched data saved to: {output_path}")
 
+        # Store the path for downloading later
+        session_state["output_path"] = output_path
+        session_state["generation_status"] = "completed"
+
+
     elif mode.lower() == "mod":
         print("✏️ Applying AI prompt to modify only original data...")
         try:
@@ -146,5 +174,9 @@ def generate_combo_data(mode: str, user_inputs: dict):
         save_dataframe(mod_df, output_path)
         print(f"✅ Modified dataset saved to: {output_path}")
 
+        # Store the path for downloading later
+        session_state["output_path"] = output_path
+
     else:
         print("❌ Invalid combined mode provided. Must be one of: ModGen, GenEn, Mod")
+    session_state["generation_status"] = "completed"

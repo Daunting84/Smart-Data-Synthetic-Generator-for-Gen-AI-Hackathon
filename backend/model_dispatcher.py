@@ -10,6 +10,7 @@ from ctgan_generator import generate_synthetic_data
 from text_generator import generate_text_data
 from combo_generator import generate_combo_data
 from utils import get_output_path, collect_user_inputs
+from utils import session_state
 
 # Safety for parallel backend
 os.environ["JOBLIB_MULTIPROCESSING"] = "0"
@@ -18,6 +19,7 @@ joblib.parallel.DEFAULT_N_JOBS = 1
 load_dotenv()
 
 def decide_model(mode, user_inputs,user_intent=None):
+    session_state["generation_status"] = "completed"
     if mode == "data":
         input_path = user_inputs["input_path"]
         output_path = get_output_path(user_inputs["output_ext"], "ctgan")
@@ -43,7 +45,6 @@ def decide_model(mode, user_inputs,user_intent=None):
 
         generate_text_data(schema, fields, user_inputs["use_case"], few_shot,
                            user_inputs["custom_prompt"], output_path, user_inputs["num_rows"])
-
     elif mode == "both":
         if user_intent not in ["modgen", "genen", "mod"]:
             print("❌ Invalid combo-mode selected.")
