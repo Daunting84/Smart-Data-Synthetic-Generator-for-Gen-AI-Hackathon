@@ -5,6 +5,7 @@ import joblib
 import shutil
 import pandas as pd
 import json
+import uvicorn
 from dotenv import load_dotenv
 import uuid
 from datetime import datetime
@@ -229,4 +230,6 @@ def main(save_path):
     session_state["generation_status"] = "completed"
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))  # Render sets PORT dynamically
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
     main()
