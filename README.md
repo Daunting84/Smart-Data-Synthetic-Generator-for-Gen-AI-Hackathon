@@ -151,6 +151,11 @@ Measures the average change in how features are correlated with each other betwe
 
 🔴 Metrics above these thresholds are flagged in red on the dashboard to help you spot potential quality or privacy concerns.
 
+## 📦 Full Project Link...
+The full project can be found at this link.   
+[http://arm-smart-data-synthetic-generator.s3-website.us-east-2.amazonaws.com]  
+Please note, the backend is hosted on the free version of Render, making it very very slow. Unfortunately due to budget restraints, this was the best available option. Note that the code still works, but it takes quite a bit of time to generate data. For serious usage of the generator, i would suggest cloning the repository.
+
 ## 📝 License
 MIT License. You are free to use, modify, and share.
 
